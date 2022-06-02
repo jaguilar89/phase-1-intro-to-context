@@ -10,7 +10,7 @@ function createEmployeeRecord(array) {
 };
 
 function createEmployeeRecords(nestedArray) {
-    let recordsArray = nestedArray.map(innerArray => createEmployeeRecord(innerArray))
+    const recordsArray = nestedArray.map(innerArray => createEmployeeRecord(innerArray))
     return recordsArray;
 };
 
@@ -43,12 +43,12 @@ function createTimeOutEvent(recordObj, dateStamp) {
 function hoursWorkedOnDate(recordObj, date) {
     const timeInDate = recordObj.timeInEvents.filter(event => event.date === date)
     const timeOutDate = recordObj.timeOutEvents.filter(event => event.date === date)
- 
+
     let timeIn = String(timeInDate[0].hour)
     timeIn.length < 4 ? timeIn = "0" + timeIn : null
     const formattedTimeIn = timeIn.slice(0, 2) + ":" + timeIn.slice(2) // "0900" => "09:00" etc 
     let timeOut = String(timeOutDate[0].hour)
-    timeOut.length < 4 ? timeIn = "0" + timeIn : null
+    timeOut.length < 4 ? timeOut = "0" + timeOut : null
     const formattedTimeOut = timeOut.slice(0, 2) + ":" + timeOut.slice(2)
     const hoursWorked = new Date(`${date} ${formattedTimeOut}`).getHours() - new Date(`${date} ${formattedTimeIn}`).getHours()
 
@@ -56,13 +56,20 @@ function hoursWorkedOnDate(recordObj, date) {
 };
 
 function wagesEarnedOnDate(recordObj, date) {
-    return recordObj.payPerHour * hoursWorkedOnDate(recordObj, date)
+	const hoursWorked = hoursWorkedOnDate(recordObj, date)
+    const payPerHour = recordObj.payPerHour
+    return hoursWorked * payPerHour;
 };
 
 function allWagesFor(recordObj) {
-    let dates = recordObj.timeInEvents.map(event => event.date);
-    let totalWages = dates.reduce((previousDate, currentDate) => {
-        return wagesEarnedOnDate(recordObj, previousDate) + wagesEarnedOnDate(recordObj, currentDate)
-    })
-   return totalWages;
+    const dates = recordObj.timeInEvents.map(event => event.date);
+    const arrayOfWages = dates.map(date => wagesEarnedOnDate(recordObj, date));
+    const totalWages = arrayOfWages.reduce((wage1, wage2) => wage1 + wage2);
+    return totalWages;
+};
+
+function calculatePayroll(recordsArray) {
+    const arrayOfWages = recordsArray.map(record => allWagesFor(record));
+    const totalPay = arrayOfWages.reduce((wage1, wage2) => wage1 + wage2);
+    return totalPay;
 };
